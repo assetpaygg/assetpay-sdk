@@ -1,0 +1,95 @@
+{
+  "name": "@assetpay/assetpay-sdk",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK for the AssetPay API",
+  "author": "AssetPay",
+  "license": "MIT",
+  "homepage": "https://github.com/assetpaygg/assetpay-sdk#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/assetpaygg/assetpay-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/assetpaygg/assetpay-sdk/issues"
+  },
+  "type": "module",
+  "publishConfig": {
+    "access": "public"
+  },
+  "packageManager": "pnpm@11.22.0",
+  "engines": {
+    "node": ">=22.19"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./webhooks": {
+      "types": "./dist/webhooks.d.mts",
+      "import": "./dist/webhooks.mjs"
+    },
+    "./realtime": {
+      "types": "./dist/realtime.d.mts",
+      "import": "./dist/realtime.mjs"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.mts",
+      "import": "./dist/types/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsdown",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "lint": "biome check .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "check:package": "tsdown && publint && attw --pack . --profile esm-only",
+    "spec:pull": "node scripts/spec-pull.mjs && pnpm spec:types",
+    "prepublishOnly": "pnpm build",
+    "spec:types": "openapi-typescript openapi.json -o test/contract/openapi.d.ts"
+  },
+  "dependencies": {
+    "undici": "^8.11.2"
+  },
+  "peerDependencies": {
+    "socket.io-client": "^4.8.0"
+  },
+  "peerDependenciesMeta": {
+    "socket.io-client": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@biomejs/biome": "^2.5.14",
+    "@types/node": "^22.20.4",
+    "openapi-typescript": "^7.13.0",
+    "publint": "^0.3.24",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "tsdown": "^0.23.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.2"
+  },
+  "keywords": [
+    "assetpay",
+    "cs2",
+    "rust",
+    "skins",
+    "payments",
+    "sdk",
+    "websocket"
+  ]
+}

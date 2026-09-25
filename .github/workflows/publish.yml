@@ -1,0 +1,31 @@
+name: Publish to npm
+
+# npm version <patch|minor|major> -> git push --follow-tags -> publish a GitHub Release.
+# Auth is npm trusted publishing (OIDC), configured on the package's npm access page.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm check:package
+      - run: npm publish --access public --provenance
