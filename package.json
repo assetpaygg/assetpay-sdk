@@ -1,10 +1,14 @@
 {
   "name": "@assetpay/assetpay-sdk",
   "version": "0.1.0",
-  "description": "Official TypeScript SDK for the AssetPay API",
-  "author": "AssetPay",
+  "description": "Official TypeScript SDK for AssetPay: accept CS2 and Rust skins as payment, with typed deposits, withdrawals, client tokens and webhook verification",
+  "author": {
+    "name": "AssetPay",
+    "email": "support@assetpay.gg",
+    "url": "https://assetpay.gg"
+  },
   "license": "MIT",
-  "homepage": "https://github.com/assetpaygg/assetpay-sdk#readme",
+  "homepage": "https://assetpay.gg/sdk",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/assetpaygg/assetpay-sdk.git"
@@ -86,10 +90,17 @@
   "keywords": [
     "assetpay",
     "cs2",
+    "counter-strike-2",
     "rust",
+    "steam",
     "skins",
+    "skin-payments",
+    "skin-trading",
     "payments",
+    "payment-gateway",
+    "webhooks",
     "sdk",
+    "typescript",
     "websocket"
   ]
 }

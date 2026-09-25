@@ -1,6 +1,12 @@
 # @assetpay/assetpay-sdk
 
-Official TypeScript SDK for the [AssetPay API](https://api.assetpay.gg/docs/public): CS2 and Rust skin deposits and withdrawals, crypto cashouts, wallet and ledger reads, and webhook verification.
+[![npm](https://img.shields.io/npm/v/@assetpay/assetpay-sdk)](https://www.npmjs.com/package/@assetpay/assetpay-sdk)
+[![CI](https://github.com/assetpaygg/assetpay-sdk/actions/workflows/ci.yml/badge.svg)](https://github.com/assetpaygg/assetpay-sdk/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
+Official TypeScript SDK for [AssetPay](https://assetpay.gg), the payment gateway for accepting CS2 and Rust skins: skin deposits and withdrawals, crypto cashouts, wallet and ledger reads, and webhook verification.
+
+[Website](https://assetpay.gg/sdk) · [API reference](https://assetpay.gg/docs) · [Swagger UI](https://api.assetpay.gg/docs/public) · [Discord](https://discord.gg/5zgN9FNZaF)
 
 - Typed methods for every public endpoint, for both merchant (API key) and end-user (client token) scopes
 - Client tokens minted and refreshed for you
@@ -188,7 +194,7 @@ for await (const tx of ap.wallet.iterateTransactions({ type: 'DEPOSIT' })) { ...
 
 AssetPay signs every delivery with your API secret:
 
-```
+```text
 X-AssetPay-Signature: t=<ISO timestamp>,id=<delivery id>,s=<hex HMAC-SHA256 of "id.t.rawBody">
 ```
 
@@ -326,6 +332,10 @@ new AssetPay({
 ```
 
 Each instance owns a connection pool. Call `await ap.close()` on shutdown.
+
+## Support
+
+Questions and integration help: [Discord](https://discord.gg/5zgN9FNZaF) or support@assetpay.gg. Bugs and feature requests: [GitHub issues](https://github.com/assetpaygg/assetpay-sdk/issues). Merchant accounts: [assetpay.gg](https://assetpay.gg/register).
 
 ## License
 
