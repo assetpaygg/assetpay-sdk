@@ -5291,7 +5291,7 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    chain: "ETH" | "BSC" | "SOL";
+                    chain: "ETH" | "BSC" | "SOL" | "TRON";
                     token?: "USDT" | "USDC";
                 };
                 header?: never;
@@ -5312,9 +5312,13 @@ export interface paths {
                             /** @enum {boolean} */
                             success: true;
                             data: {
+                                /** @description Flat fee taken from each deposit on this chain, in cents (0 where it has none). */
+                                depositFeeCents: number;
+                                /** @description Deposits of at least this many cents pay no fee; null when the chain has none. */
+                                depositFeeFreeFromCents: number | null;
                                 steamId: string;
                                 /** @enum {string} */
-                                chain: "ETH" | "BSC" | "SOL";
+                                chain: "ETH" | "BSC" | "SOL" | "TRON";
                                 network: string;
                                 testnet: boolean;
                                 /** @enum {string} */
@@ -5687,7 +5691,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        chain: "ETH" | "BSC" | "SOL";
+                        chain: "ETH" | "BSC" | "SOL" | "TRON";
                         /** @enum {string} */
                         token: "USDT" | "USDC";
                         address: string;
@@ -6105,7 +6109,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        chain: "ETH" | "BSC" | "SOL";
+                        chain: "ETH" | "BSC" | "SOL" | "TRON";
                         /** @enum {string} */
                         token: "USDT" | "USDC";
                         address: string;
@@ -6545,7 +6549,7 @@ export interface paths {
         get: {
             parameters: {
                 query: {
-                    chain: "ETH" | "BSC" | "SOL";
+                    chain: "ETH" | "BSC" | "SOL" | "TRON";
                     token?: "USDT" | "USDC";
                     steamId: string;
                 };
@@ -6567,9 +6571,13 @@ export interface paths {
                             /** @enum {boolean} */
                             success: true;
                             data: {
+                                /** @description Flat fee taken from each deposit on this chain, in cents (0 where it has none). */
+                                depositFeeCents: number;
+                                /** @description Deposits of at least this many cents pay no fee; null when the chain has none. */
+                                depositFeeFreeFromCents: number | null;
                                 steamId: string;
                                 /** @enum {string} */
-                                chain: "ETH" | "BSC" | "SOL";
+                                chain: "ETH" | "BSC" | "SOL" | "TRON";
                                 network: string;
                                 testnet: boolean;
                                 /** @enum {string} */

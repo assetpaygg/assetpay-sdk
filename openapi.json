@@ -13253,7 +13253,8 @@
               "enum": [
                 "ETH",
                 "BSC",
-                "SOL"
+                "SOL",
+                "TRON"
               ]
             },
             "required": true,
@@ -13295,6 +13296,17 @@
                     "data": {
                       "type": "object",
                       "properties": {
+                        "depositFeeCents": {
+                          "type": "integer",
+                          "description": "Flat fee taken from each deposit on this chain, in cents (0 where it has none)."
+                        },
+                        "depositFeeFreeFromCents": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Deposits of at least this many cents pay no fee; null when the chain has none."
+                        },
                         "steamId": {
                           "type": "string"
                         },
@@ -13303,7 +13315,8 @@
                           "enum": [
                             "ETH",
                             "BSC",
-                            "SOL"
+                            "SOL",
+                            "TRON"
                           ]
                         },
                         "network": {
@@ -13372,6 +13385,8 @@
                         }
                       },
                       "required": [
+                        "depositFeeCents",
+                        "depositFeeFreeFromCents",
                         "steamId",
                         "chain",
                         "network",
@@ -14178,7 +14193,8 @@
                     "enum": [
                       "ETH",
                       "BSC",
-                      "SOL"
+                      "SOL",
+                      "TRON"
                     ]
                   },
                   "token": {
@@ -15185,7 +15201,8 @@
                     "enum": [
                       "ETH",
                       "BSC",
-                      "SOL"
+                      "SOL",
+                      "TRON"
                     ]
                   },
                   "token": {
@@ -16273,7 +16290,8 @@
               "enum": [
                 "ETH",
                 "BSC",
-                "SOL"
+                "SOL",
+                "TRON"
               ]
             },
             "required": true,
@@ -16324,6 +16342,17 @@
                     "data": {
                       "type": "object",
                       "properties": {
+                        "depositFeeCents": {
+                          "type": "integer",
+                          "description": "Flat fee taken from each deposit on this chain, in cents (0 where it has none)."
+                        },
+                        "depositFeeFreeFromCents": {
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "description": "Deposits of at least this many cents pay no fee; null when the chain has none."
+                        },
                         "steamId": {
                           "type": "string"
                         },
@@ -16332,7 +16361,8 @@
                           "enum": [
                             "ETH",
                             "BSC",
-                            "SOL"
+                            "SOL",
+                            "TRON"
                           ]
                         },
                         "network": {
@@ -16401,6 +16431,8 @@
                         }
                       },
                       "required": [
+                        "depositFeeCents",
+                        "depositFeeFreeFromCents",
                         "steamId",
                         "chain",
                         "network",

@@ -268,7 +268,7 @@ export interface ClientAuthToken {
   token: string;
 }
 
-export type CryptoChain = 'ETH' | 'BSC' | 'SOL';
+export type CryptoChain = 'ETH' | 'BSC' | 'SOL' | 'TRON';
 export type CryptoToken = 'USDT' | 'USDC';
 export type CryptoDepositAddressStatus = 'active' | 'pending' | 'paused';
 
@@ -290,6 +290,8 @@ export interface CryptoDepositAddress {
   minDepositCents: number;
   minConfirmations: number;
   explorerUrl: string | null;
+  depositFeeCents: number;
+  depositFeeFreeFromCents: number | null;
 }
 
 export type CryptoDepositStatus =
