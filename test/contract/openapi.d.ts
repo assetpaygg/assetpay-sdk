@@ -5286,7 +5286,7 @@ export interface paths {
         };
         /**
          * Get the client's crypto deposit address
-         * @description Returns the end user's permanent USDT/USDC deposit address on the chosen chain and creates it on the first call. The address never changes and can be reused for every deposit. On Solana each token has its own account, opened on request: pass `token` (default USDC, ignored on other chains) for the token the end user is about to send. The first call answers `pending` with no address, poll until it is `active` and `tokens` lists that token, and call again before each later deposit because an emptied account is closed. Returns ONCHAIN_ADDRESS_CAPACITY (503) when the merchant has too many Solana accounts open. Only a listed token on the listed network is credited, and a deposit under `minDepositCents` is not credited. A cleared deposit is credited to the merchant balance and announced with a `crypto_deposit` webhook carrying the `steamId`; crediting the end user is the merchant's side. Available to verified merchants.
+         * @description Returns the end user's permanent USDT/USDC deposit address on the chosen chain and creates it on the first call. The address never changes and can be reused for every deposit. On Solana each token has its own account, opened on request: pass `token` (default USDC, ignored on other chains) for the token the end user is about to send. The first call answers `pending` with no address, poll until it is `active` and `tokens` lists that token, and call again before each later deposit because an emptied account is closed. Returns ONCHAIN_ADDRESS_CAPACITY (503) when the merchant has too many Solana accounts open. Only a listed token on the listed network is credited. A deposit under `minDepositCents` waits up to 72 hours for more to the same address: it is credited once the total reaches the minimum, and fails if it never does. A cleared deposit is credited to the merchant balance and announced with a `crypto_deposit` webhook carrying the `steamId`; crediting the end user is the merchant's side. Available to verified merchants.
          */
         get: {
             parameters: {
@@ -5533,7 +5533,10 @@ export interface paths {
                                     id: string;
                                     /** @enum {string} */
                                     type: "crypto_deposit";
-                                    /** @enum {string} */
+                                    /**
+                                     * @description `below_minimum`: under the minimum and waiting up to 72h for more to the same address; it ends `completed` or `failed`.
+                                     * @enum {string}
+                                     */
                                     status: "pending" | "completed" | "failed" | "frozen" | "refunded" | "below_minimum";
                                     steamId: string;
                                     chain: string;
@@ -6537,7 +6540,7 @@ export interface paths {
         };
         /**
          * Get a client's crypto deposit address
-         * @description Returns the end user's permanent USDT/USDC deposit address on the chosen chain and creates it on the first call. The address never changes and can be reused for every deposit. On Solana each token has its own account, opened on request: pass `token` (default USDC, ignored on other chains) for the token the end user is about to send. The first call answers `pending` with no address, poll until it is `active` and `tokens` lists that token, and call again before each later deposit because an emptied account is closed. Returns ONCHAIN_ADDRESS_CAPACITY (503) when the merchant has too many Solana accounts open. Only a listed token on the listed network is credited, and a deposit under `minDepositCents` is not credited. A cleared deposit is credited to the merchant balance and announced with a `crypto_deposit` webhook carrying the `steamId`; crediting the end user is the merchant's side. Available to verified merchants. Requires CORE_ACCESS scope.
+         * @description Returns the end user's permanent USDT/USDC deposit address on the chosen chain and creates it on the first call. The address never changes and can be reused for every deposit. On Solana each token has its own account, opened on request: pass `token` (default USDC, ignored on other chains) for the token the end user is about to send. The first call answers `pending` with no address, poll until it is `active` and `tokens` lists that token, and call again before each later deposit because an emptied account is closed. Returns ONCHAIN_ADDRESS_CAPACITY (503) when the merchant has too many Solana accounts open. Only a listed token on the listed network is credited. A deposit under `minDepositCents` waits up to 72 hours for more to the same address: it is credited once the total reaches the minimum, and fails if it never does. A cleared deposit is credited to the merchant balance and announced with a `crypto_deposit` webhook carrying the `steamId`; crediting the end user is the merchant's side. Available to verified merchants. Requires CORE_ACCESS scope.
          */
         get: {
             parameters: {
@@ -6786,7 +6789,10 @@ export interface paths {
                                     id: string;
                                     /** @enum {string} */
                                     type: "crypto_deposit";
-                                    /** @enum {string} */
+                                    /**
+                                     * @description `below_minimum`: under the minimum and waiting up to 72h for more to the same address; it ends `completed` or `failed`.
+                                     * @enum {string}
+                                     */
                                     status: "pending" | "completed" | "failed" | "frozen" | "refunded" | "below_minimum";
                                     steamId: string;
                                     chain: string;
