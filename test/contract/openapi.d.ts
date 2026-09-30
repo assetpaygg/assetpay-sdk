@@ -3926,7 +3926,7 @@ export interface paths {
         };
         /**
          * Get client Steam inventory
-         * @description Fetches the authenticated client's Steam inventory with pricing, search, filtering, and pagination. Inventory is cached for 15 minutes unless refresh=true. Includes collateral calculation.
+         * @description Fetches the authenticated client's Steam inventory with pricing, search, filtering, and pagination. Inventory is cached for 1 minute unless refresh=true. Includes collateral calculation.
          */
         get: {
             parameters: {
@@ -5538,8 +5538,15 @@ export interface paths {
                                     steamId: string;
                                     chain: string;
                                     token: string;
+                                    /** @description Gross USD value of the transfer, as sent on chain. */
                                     amount: string;
                                     amountCents: number;
+                                    /** @description Deposit fee in USD, taken from the gross (0 where the chain has none). */
+                                    fee: string;
+                                    feeCents: number;
+                                    /** @description What your balance is credited: amount minus fee. */
+                                    netAmount: string;
+                                    netAmountCents: number;
                                     cryptoAmount: string;
                                     address: string;
                                     txHash: string | null;
@@ -5664,7 +5671,7 @@ export interface paths {
         put?: never;
         /**
          * Withdraw crypto to the client's address
-         * @description Sends USDT or USDC from the merchant balance to an address the end user chose. Because the request comes from the end user, the merchant's server is asked first: the withdrawal starts as `awaiting_approval` and a signed POST with `{ withdrawal }` goes to the merchant callback URL, the same approval call used for skin withdrawals. A 2xx answer approves it; a 4xx answer, or a body with `action: "reject"`, refuses it. No usable answer after three tries refuses it. The merchant must debit its own user before approving. `amountCents` is debited from the merchant balance and held at once; the end user receives `receiveCents`, which is the amount minus the flat network fee `feeCents` of the chain. `requestId` makes the call safe to retry: the same `requestId` for the same end user returns the first withdrawal and never creates a second one. Every later status change is announced with a `crypto_withdraw` webhook carrying the `steamId`; on `rejected`, `failed` and `cancelled` the full amount is back in the merchant balance. Returns ONCHAIN_CLIENT_WITHDRAW_LIMIT (403) with `details.scope` (`user` or `merchant`) and `details.remainingCents` when a daily limit is reached, ONCHAIN_CLIENT_WITHDRAW_DISABLED (503) while the feature is switched off, and INSUFFICIENT_BALANCE (400) when the merchant balance does not cover it. Large withdrawals are held for a manual review (`in_review`). Available to verified merchants.
+         * @description Sends USDT or USDC from the merchant balance to an address the end user chose. The merchant's server confirms every withdrawal before anything is sent: it starts as `awaiting_approval` and a signed POST with `{ withdrawal }` goes to the merchant callback URL, the same approval call used for skin withdrawals. Check the address and amount there. A 2xx answer approves it; a 4xx answer, or a body with `action: "reject"`, refuses it. No usable answer after three tries, or within 30 minutes, refuses it. The merchant must debit its own user before approving. `amountCents` is debited from the merchant balance and held at once; the end user receives `receiveCents`, which is the amount minus the flat network fee `feeCents` of the chain. `requestId` makes the call safe to retry: the same `requestId` for the same end user returns the first withdrawal and never creates a second one. Every later status change is announced with a `crypto_withdraw` webhook carrying the `steamId`; on `rejected`, `failed` and `cancelled` the full amount is back in the merchant balance. Returns ONCHAIN_CLIENT_WITHDRAW_LIMIT (403) with `details.scope` (`user` or `merchant`) and `details.remainingCents` when a daily limit is reached, ONCHAIN_CLIENT_WITHDRAW_DISABLED (503) while the feature is switched off, ONCHAIN_CLIENT_WITHDRAW_NO_CALLBACK (409) without a callback URL and API secret, and INSUFFICIENT_BALANCE (400) when the merchant balance does not cover it. Large withdrawals are held for a manual review (`in_review`). Available to verified merchants.
          */
         post: {
             parameters: {
@@ -6082,7 +6089,7 @@ export interface paths {
         put?: never;
         /**
          * Withdraw crypto to a client's address
-         * @description Sends USDT or USDC from the merchant balance to an end user's address. The request comes from the merchant's own server, so no approval callback is made: debit your user first, then call this. `amountCents` is debited from the merchant balance and held at once; the end user receives `receiveCents`, which is the amount minus the flat network fee `feeCents` of the chain. `requestId` makes the call safe to retry: the same `requestId` for the same end user returns the first withdrawal and never creates a second one. Every later status change is announced with a `crypto_withdraw` webhook carrying the `steamId`; on `rejected`, `failed` and `cancelled` the full amount is back in the merchant balance. Returns ONCHAIN_CLIENT_WITHDRAW_LIMIT (403) with `details.scope` (`user` or `merchant`) and `details.remainingCents` when a daily limit is reached, ONCHAIN_CLIENT_WITHDRAW_DISABLED (503) while the feature is switched off, and INSUFFICIENT_BALANCE (400) when the merchant balance does not cover it. Large withdrawals are held for a manual review (`in_review`). Available to verified merchants. Requires CORE_ACCESS scope.
+         * @description Sends USDT or USDC from the merchant balance to an end user's address. The merchant's server confirms every withdrawal before anything is sent: it starts as `awaiting_approval` and a signed POST with `{ withdrawal }` goes to the merchant callback URL, the same approval call used for skin withdrawals. Check the address and amount there. A 2xx answer approves it; a 4xx answer, or a body with `action: "reject"`, refuses it. No usable answer after three tries, or within 30 minutes, refuses it. The merchant must debit its own user before approving. `amountCents` is debited from the merchant balance and held at once; the end user receives `receiveCents`, which is the amount minus the flat network fee `feeCents` of the chain. `requestId` makes the call safe to retry: the same `requestId` for the same end user returns the first withdrawal and never creates a second one. Every later status change is announced with a `crypto_withdraw` webhook carrying the `steamId`; on `rejected`, `failed` and `cancelled` the full amount is back in the merchant balance. Returns ONCHAIN_CLIENT_WITHDRAW_LIMIT (403) with `details.scope` (`user` or `merchant`) and `details.remainingCents` when a daily limit is reached, ONCHAIN_CLIENT_WITHDRAW_DISABLED (503) while the feature is switched off, ONCHAIN_CLIENT_WITHDRAW_NO_CALLBACK (409) without a callback URL and API secret, and INSUFFICIENT_BALANCE (400) when the merchant balance does not cover it. Large withdrawals are held for a manual review (`in_review`). Available to verified merchants. Requires CORE_ACCESS scope.
          */
         post: {
             parameters: {
@@ -6784,8 +6791,15 @@ export interface paths {
                                     steamId: string;
                                     chain: string;
                                     token: string;
+                                    /** @description Gross USD value of the transfer, as sent on chain. */
                                     amount: string;
                                     amountCents: number;
+                                    /** @description Deposit fee in USD, taken from the gross (0 where the chain has none). */
+                                    fee: string;
+                                    feeCents: number;
+                                    /** @description What your balance is credited: amount minus fee. */
+                                    netAmount: string;
+                                    netAmountCents: number;
                                     cryptoAmount: string;
                                     address: string;
                                     txHash: string | null;

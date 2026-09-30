@@ -309,6 +309,10 @@ export interface CryptoDeposit {
   token: string;
   amount: string;
   amountCents: number;
+  fee: string;
+  feeCents: number;
+  netAmount: string;
+  netAmountCents: number;
   cryptoAmount: string;
   address: string;
   txHash: string | null;
