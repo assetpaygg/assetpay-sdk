@@ -657,7 +657,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -670,6 +681,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -967,7 +980,7 @@ export interface paths {
                                  * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                  * @enum {string}
                                  */
-                                source: "client" | "self";
+                                source: "client" | "self" | "arbitrage";
                                 externalId?: string;
                                 externalClientUserId?: string;
                                 merchantId: string;
@@ -1008,7 +1021,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -1021,6 +1045,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -1089,7 +1115,7 @@ export interface paths {
                                  * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                 /**
                                  * Format: date-time
                                  * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -1113,7 +1139,7 @@ export interface paths {
                                      * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                      * @enum {string}
                                      */
-                                    source: "client" | "self";
+                                    source: "client" | "self" | "arbitrage";
                                     externalId?: string;
                                     externalClientUserId?: string;
                                     merchantId: string;
@@ -1154,7 +1180,18 @@ export interface paths {
                                          * @description Failure code for a failed withdraw item (withdrawals only)
                                          * @enum {string}
                                          */
-                                        error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                        error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                        /**
+                                         * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                         * @enum {boolean}
+                                         */
+                                        quickBuyable?: false;
+                                        /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                        minPrice?: number;
+                                        /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                        revertRefundPercent?: number;
+                                        /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                        refundAmount?: number;
                                         /** @description Market reference price in USD */
                                         marketPrice?: number;
                                         offer?: {
@@ -1167,6 +1204,8 @@ export interface paths {
                                             delivery?: "standard" | "instant";
                                             maxAmount?: number;
                                             accepted?: boolean;
+                                            /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                            revertRefundPercent?: number;
                                         };
                                         exterior?: string;
                                         rarity?: string;
@@ -1235,7 +1274,7 @@ export interface paths {
                                      * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                     /**
                                      * Format: date-time
                                      * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -1506,7 +1545,7 @@ export interface paths {
                                  * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                  * @enum {string}
                                  */
-                                source: "client" | "self";
+                                source: "client" | "self" | "arbitrage";
                                 externalId?: string;
                                 externalClientUserId?: string;
                                 merchantId: string;
@@ -1547,7 +1586,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -1560,6 +1610,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -1628,7 +1680,7 @@ export interface paths {
                                  * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                 /**
                                  * Format: date-time
                                  * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -1844,6 +1896,8 @@ export interface paths {
                          * @enum {string}
                          */
                         phase?: "Phase 1" | "Phase 2" | "Phase 3" | "Phase 4" | "Ruby" | "Sapphire" | "Black Pearl" | "Emerald";
+                        /** @description CS2 only. Never fill below this share refunded on a buyer reversal. A listing that names no share counts as 0. */
+                        minRevertRefundPercent?: number;
                         /** @description Minutes after creation to automatically cancel still-undelivered items (30-720). Defaults to 30; 720 disables auto-cancel. CS2 only. */
                         autoCancel?: number;
                         /** @default 730 */
@@ -1875,7 +1929,7 @@ export interface paths {
                                  * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                  * @enum {string}
                                  */
-                                source: "client" | "self";
+                                source: "client" | "self" | "arbitrage";
                                 externalId?: string;
                                 externalClientUserId?: string;
                                 merchantId: string;
@@ -1916,7 +1970,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -1929,6 +1994,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -1997,7 +2064,7 @@ export interface paths {
                                  * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                 /**
                                  * Format: date-time
                                  * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -2218,8 +2285,11 @@ export interface paths {
                                 /** Format: uuid */
                                 itemId: string;
                                 externalId?: string;
-                                /** @enum {string} */
-                                status: "cancelled";
+                                /**
+                                 * @description cancel_requested: the supplier only took a request the seller may still beat by delivering. The item stays pending and refunds in full via the trade webhook once the seller's side cancels.
+                                 * @enum {string}
+                                 */
+                                status: "cancelled" | "cancel_requested";
                             };
                         };
                     };
@@ -2424,12 +2494,17 @@ export interface paths {
                                 /** @description Items the provider considered cancellable */
                                 requested: number;
                                 cancelled: number;
+                                /** @description Items whose cancel is only a request so far */
+                                cancelRequested: number;
                                 failed: number;
                                 items: {
                                     itemId: string;
                                     externalId?: string;
-                                    /** @enum {string} */
-                                    status: "cancelled" | "failed";
+                                    /**
+                                     * @description cancel_requested: the supplier only took a request the seller may still beat by delivering. The item stays pending and refunds in full via the trade webhook once the seller's side cancels.
+                                     * @enum {string}
+                                     */
+                                    status: "cancelled" | "cancel_requested" | "failed";
                                     /** @description Stable error key when the cancel was refused, e.g. TRADE_CANCEL_TOO_SOON or TRADE_NOT_CANCELLABLE. */
                                     reason?: string;
                                 }[];
@@ -2664,7 +2739,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -2677,6 +2763,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -2924,7 +3012,18 @@ export interface paths {
                                  * @description Failure code for a failed withdraw item (withdrawals only)
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                /**
+                                 * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                 * @enum {boolean}
+                                 */
+                                quickBuyable?: false;
+                                /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                minPrice?: number;
+                                /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                revertRefundPercent?: number;
+                                /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                refundAmount?: number;
                                 /** @description Market reference price in USD */
                                 marketPrice?: number;
                                 offer?: {
@@ -2937,6 +3036,8 @@ export interface paths {
                                     delivery?: "standard" | "instant";
                                     maxAmount?: number;
                                     accepted?: boolean;
+                                    /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                    revertRefundPercent?: number;
                                 };
                                 exterior?: string;
                                 rarity?: string;
@@ -3186,7 +3287,7 @@ export interface paths {
                                      * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                      * @enum {string}
                                      */
-                                    source: "client" | "self";
+                                    source: "client" | "self" | "arbitrage";
                                     externalId?: string;
                                     externalClientUserId?: string;
                                     merchantId: string;
@@ -3227,7 +3328,18 @@ export interface paths {
                                          * @description Failure code for a failed withdraw item (withdrawals only)
                                          * @enum {string}
                                          */
-                                        error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                        error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                        /**
+                                         * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                         * @enum {boolean}
+                                         */
+                                        quickBuyable?: false;
+                                        /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                        minPrice?: number;
+                                        /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                        revertRefundPercent?: number;
+                                        /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                        refundAmount?: number;
                                         /** @description Market reference price in USD */
                                         marketPrice?: number;
                                         offer?: {
@@ -3240,6 +3352,8 @@ export interface paths {
                                             delivery?: "standard" | "instant";
                                             maxAmount?: number;
                                             accepted?: boolean;
+                                            /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                            revertRefundPercent?: number;
                                         };
                                         exterior?: string;
                                         rarity?: string;
@@ -3308,7 +3422,7 @@ export interface paths {
                                      * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                     /**
                                      * Format: date-time
                                      * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -3501,7 +3615,7 @@ export interface paths {
                                  * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                  * @enum {string}
                                  */
-                                source: "client" | "self";
+                                source: "client" | "self" | "arbitrage";
                                 externalId?: string;
                                 externalClientUserId?: string;
                                 merchantId: string;
@@ -3542,7 +3656,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -3555,6 +3680,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -3623,7 +3750,7 @@ export interface paths {
                                  * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                 /**
                                  * Format: date-time
                                  * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -3646,7 +3773,7 @@ export interface paths {
                                  * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                  * @enum {string}
                                  */
-                                source: "client" | "self";
+                                source: "client" | "self" | "arbitrage";
                                 externalId?: string;
                                 externalClientUserId?: string;
                                 merchantId: string;
@@ -3687,7 +3814,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -3700,6 +3838,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -3768,7 +3908,7 @@ export interface paths {
                                  * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                 /**
                                  * Format: date-time
                                  * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -3986,7 +4126,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -3999,6 +4150,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -4254,7 +4407,7 @@ export interface paths {
                                      * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                      * @enum {string}
                                      */
-                                    source: "client" | "self";
+                                    source: "client" | "self" | "arbitrage";
                                     externalId?: string;
                                     externalClientUserId?: string;
                                     merchantId: string;
@@ -4295,7 +4448,18 @@ export interface paths {
                                          * @description Failure code for a failed withdraw item (withdrawals only)
                                          * @enum {string}
                                          */
-                                        error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                        error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                        /**
+                                         * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                         * @enum {boolean}
+                                         */
+                                        quickBuyable?: false;
+                                        /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                        minPrice?: number;
+                                        /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                        revertRefundPercent?: number;
+                                        /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                        refundAmount?: number;
                                         /** @description Market reference price in USD */
                                         marketPrice?: number;
                                         offer?: {
@@ -4308,6 +4472,8 @@ export interface paths {
                                             delivery?: "standard" | "instant";
                                             maxAmount?: number;
                                             accepted?: boolean;
+                                            /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                            revertRefundPercent?: number;
                                         };
                                         exterior?: string;
                                         rarity?: string;
@@ -4376,7 +4542,7 @@ export interface paths {
                                      * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                     /**
                                      * Format: date-time
                                      * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -4800,7 +4966,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -4813,6 +4990,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -5060,7 +5239,18 @@ export interface paths {
                                  * @description Failure code for a failed withdraw item (withdrawals only)
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                /**
+                                 * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                 * @enum {boolean}
+                                 */
+                                quickBuyable?: false;
+                                /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                minPrice?: number;
+                                /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                revertRefundPercent?: number;
+                                /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                refundAmount?: number;
                                 /** @description Market reference price in USD */
                                 marketPrice?: number;
                                 offer?: {
@@ -5073,6 +5263,8 @@ export interface paths {
                                     delivery?: "standard" | "instant";
                                     maxAmount?: number;
                                     accepted?: boolean;
+                                    /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                    revertRefundPercent?: number;
                                 };
                                 exterior?: string;
                                 rarity?: string;
@@ -7014,7 +7206,7 @@ export interface paths {
                                  * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                  * @enum {string}
                                  */
-                                source: "client" | "self";
+                                source: "client" | "self" | "arbitrage";
                                 externalId?: string;
                                 externalClientUserId?: string;
                                 merchantId: string;
@@ -7055,7 +7247,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -7068,6 +7271,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -7136,7 +7341,7 @@ export interface paths {
                                  * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                 /**
                                  * Format: date-time
                                  * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -7160,7 +7365,7 @@ export interface paths {
                                      * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                      * @enum {string}
                                      */
-                                    source: "client" | "self";
+                                    source: "client" | "self" | "arbitrage";
                                     externalId?: string;
                                     externalClientUserId?: string;
                                     merchantId: string;
@@ -7201,7 +7406,18 @@ export interface paths {
                                          * @description Failure code for a failed withdraw item (withdrawals only)
                                          * @enum {string}
                                          */
-                                        error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                        error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                        /**
+                                         * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                         * @enum {boolean}
+                                         */
+                                        quickBuyable?: false;
+                                        /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                        minPrice?: number;
+                                        /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                        revertRefundPercent?: number;
+                                        /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                        refundAmount?: number;
                                         /** @description Market reference price in USD */
                                         marketPrice?: number;
                                         offer?: {
@@ -7214,6 +7430,8 @@ export interface paths {
                                             delivery?: "standard" | "instant";
                                             maxAmount?: number;
                                             accepted?: boolean;
+                                            /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                            revertRefundPercent?: number;
                                         };
                                         exterior?: string;
                                         rarity?: string;
@@ -7282,7 +7500,7 @@ export interface paths {
                                      * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                     /**
                                      * Format: date-time
                                      * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -7522,7 +7740,7 @@ export interface paths {
                                  * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                  * @enum {string}
                                  */
-                                source: "client" | "self";
+                                source: "client" | "self" | "arbitrage";
                                 externalId?: string;
                                 externalClientUserId?: string;
                                 merchantId: string;
@@ -7563,7 +7781,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -7576,6 +7805,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -7644,7 +7875,7 @@ export interface paths {
                                  * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                 /**
                                  * Format: date-time
                                  * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -7830,6 +8061,8 @@ export interface paths {
                          * @enum {string}
                          */
                         phase?: "Phase 1" | "Phase 2" | "Phase 3" | "Phase 4" | "Ruby" | "Sapphire" | "Black Pearl" | "Emerald";
+                        /** @description CS2 only. Never fill below this share refunded on a buyer reversal. A listing that names no share counts as 0. */
+                        minRevertRefundPercent?: number;
                         /** @description Minutes after creation to automatically cancel still-undelivered items (30-720). Defaults to 30; 720 disables auto-cancel. CS2 only. */
                         autoCancel?: number;
                         /** @default 730 */
@@ -7860,7 +8093,7 @@ export interface paths {
                                  * @description Trade origin: "client" (end-user flow) or "self" (merchant self-trade)
                                  * @enum {string}
                                  */
-                                source: "client" | "self";
+                                source: "client" | "self" | "arbitrage";
                                 externalId?: string;
                                 externalClientUserId?: string;
                                 merchantId: string;
@@ -7901,7 +8134,18 @@ export interface paths {
                                      * @description Failure code for a failed withdraw item (withdrawals only)
                                      * @enum {string}
                                      */
-                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED";
+                                    error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED";
+                                    /**
+                                     * @description Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id.
+                                     * @enum {boolean}
+                                     */
+                                    quickBuyable?: false;
+                                    /** @description Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first. */
+                                    minPrice?: number;
+                                    /** @description CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown. */
+                                    revertRefundPercent?: number;
+                                    /** @description Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share. */
+                                    refundAmount?: number;
                                     /** @description Market reference price in USD */
                                     marketPrice?: number;
                                     offer?: {
@@ -7914,6 +8158,8 @@ export interface paths {
                                         delivery?: "standard" | "instant";
                                         maxAmount?: number;
                                         accepted?: boolean;
+                                        /** @description CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it. */
+                                        revertRefundPercent?: number;
                                     };
                                     exterior?: string;
                                     rarity?: string;
@@ -7982,7 +8228,7 @@ export interface paths {
                                  * @description Trade-level failure reason, omitted when there is none. Withdraw: set only when the whole trade failed with one shared cause.
                                  * @enum {string}
                                  */
-                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
+                                error?: "LISTING_UNAVAILABLE" | "NO_LISTING_AT_PRICE" | "PRICE_CHANGED" | "TRADE_URL_INVALID" | "STEAM_ACCOUNT_RESTRICTED" | "BUYER_TRADE_RESTRICTED" | "OFFER_NOT_ACCEPTED" | "MARKET_UNAVAILABLE" | "PURCHASE_FAILED" | "SELLER_FAILED" | "USER_TRADE_RESTRICTED" | "USER_INVENTORY_PRIVATE" | "USER_ESCROW" | "USER_NOT_FOUND" | "SERVICE_UNAVAILABLE" | "MERCHANT_REJECTED" | "APPROVAL_TIMEOUT";
                                 /**
                                  * Format: date-time
                                  * @description When the trade first became active (the trade offer went live at the user). Absent until then.
@@ -8173,8 +8419,11 @@ export interface paths {
                                 /** Format: uuid */
                                 itemId: string;
                                 externalId?: string;
-                                /** @enum {string} */
-                                status: "cancelled";
+                                /**
+                                 * @description cancel_requested: the supplier only took a request the seller may still beat by delivering. The item stays pending and refunds in full via the trade webhook once the seller's side cancels.
+                                 * @enum {string}
+                                 */
+                                status: "cancelled" | "cancel_requested";
                             };
                         };
                     };
@@ -8379,12 +8628,17 @@ export interface paths {
                                 /** @description Items the provider considered cancellable */
                                 requested: number;
                                 cancelled: number;
+                                /** @description Items whose cancel is only a request so far */
+                                cancelRequested: number;
                                 failed: number;
                                 items: {
                                     itemId: string;
                                     externalId?: string;
-                                    /** @enum {string} */
-                                    status: "cancelled" | "failed";
+                                    /**
+                                     * @description cancel_requested: the supplier only took a request the seller may still beat by delivering. The item stays pending and refunds in full via the trade webhook once the seller's side cancels.
+                                     * @enum {string}
+                                     */
+                                    status: "cancelled" | "cancel_requested" | "failed";
                                     /** @description Stable error key when the cancel was refused, e.g. TRADE_CANCEL_TOO_SOON or TRADE_NOT_CANCELLABLE. */
                                     reason?: string;
                                 }[];
@@ -9272,6 +9526,8 @@ export interface paths {
                                     status: string;
                                     amount: {
                                         usd: number;
+                                        /** @description What moved on the wallet: an on-chain deposit fee comes out of usd, a withdrawal fee is added on top */
+                                        netUsd: number;
                                         crypto: string;
                                         token: string | null;
                                         chain: string | null;
@@ -9497,6 +9753,8 @@ export interface paths {
                                 status: string;
                                 amount: {
                                     usd: number;
+                                    /** @description What moved on the wallet: an on-chain deposit fee comes out of usd, a withdrawal fee is added on top */
+                                    netUsd: number;
                                     crypto: string;
                                     token: string | null;
                                     chain: string | null;

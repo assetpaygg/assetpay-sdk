@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "AssetPay Public API",
-    "version": "0.8.3",
+    "version": "0.8.4",
     "description": "Public trading API - skin deposits, withdrawals, pricing, client endpoints, and identity verification."
   },
   "servers": [
@@ -1598,9 +1598,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -1626,6 +1646,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -2336,7 +2360,8 @@
                           "type": "string",
                           "enum": [
                             "client",
-                            "self"
+                            "self",
+                            "arbitrage"
                           ],
                           "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                         },
@@ -2449,9 +2474,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -2477,6 +2522,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -2696,6 +2745,7 @@
                             "OFFER_NOT_ACCEPTED",
                             "MARKET_UNAVAILABLE",
                             "PURCHASE_FAILED",
+                            "SELLER_FAILED",
                             "USER_TRADE_RESTRICTED",
                             "USER_INVENTORY_PRIVATE",
                             "USER_ESCROW",
@@ -2743,7 +2793,8 @@
                                 "type": "string",
                                 "enum": [
                                   "client",
-                                  "self"
+                                  "self",
+                                  "arbitrage"
                                 ],
                                 "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                               },
@@ -2856,9 +2907,29 @@
                                         "BUYER_TRADE_RESTRICTED",
                                         "OFFER_NOT_ACCEPTED",
                                         "MARKET_UNAVAILABLE",
-                                        "PURCHASE_FAILED"
+                                        "PURCHASE_FAILED",
+                                        "SELLER_FAILED"
                                       ],
                                       "description": "Failure code for a failed withdraw item (withdrawals only)"
+                                    },
+                                    "quickBuyable": {
+                                      "type": "boolean",
+                                      "enum": [
+                                        false
+                                      ],
+                                      "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                                    },
+                                    "minPrice": {
+                                      "type": "number",
+                                      "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                                    },
+                                    "revertRefundPercent": {
+                                      "type": "number",
+                                      "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                                    },
+                                    "refundAmount": {
+                                      "type": "number",
+                                      "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                                     },
                                     "marketPrice": {
                                       "type": "number",
@@ -2884,6 +2955,10 @@
                                         },
                                         "accepted": {
                                           "type": "boolean"
+                                        },
+                                        "revertRefundPercent": {
+                                          "type": "number",
+                                          "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                         }
                                       },
                                       "required": [
@@ -3103,6 +3178,7 @@
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
                                   "PURCHASE_FAILED",
+                                  "SELLER_FAILED",
                                   "USER_TRADE_RESTRICTED",
                                   "USER_INVENTORY_PRIVATE",
                                   "USER_ESCROW",
@@ -3731,7 +3807,8 @@
                           "type": "string",
                           "enum": [
                             "client",
-                            "self"
+                            "self",
+                            "arbitrage"
                           ],
                           "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                         },
@@ -3844,9 +3921,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -3872,6 +3969,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -4091,6 +4192,7 @@
                             "OFFER_NOT_ACCEPTED",
                             "MARKET_UNAVAILABLE",
                             "PURCHASE_FAILED",
+                            "SELLER_FAILED",
                             "USER_TRADE_RESTRICTED",
                             "USER_INVENTORY_PRIVATE",
                             "USER_ESCROW",
@@ -4566,6 +4668,12 @@
                     ],
                     "description": "Doppler phase to buy (e.g. 'Ruby'). Priced against the phase floor for the requested delivery mode."
                   },
+                  "minRevertRefundPercent": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "CS2 only. Never fill below this share refunded on a buyer reversal. A listing that names no share counts as 0."
+                  },
                   "autoCancel": {
                     "type": "integer",
                     "minimum": 30,
@@ -4640,7 +4748,8 @@
                           "type": "string",
                           "enum": [
                             "client",
-                            "self"
+                            "self",
+                            "arbitrage"
                           ],
                           "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                         },
@@ -4753,9 +4862,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -4781,6 +4910,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -5000,6 +5133,7 @@
                             "OFFER_NOT_ACCEPTED",
                             "MARKET_UNAVAILABLE",
                             "PURCHASE_FAILED",
+                            "SELLER_FAILED",
                             "USER_TRADE_RESTRICTED",
                             "USER_INVENTORY_PRIVATE",
                             "USER_ESCROW",
@@ -5485,8 +5619,10 @@
                         "status": {
                           "type": "string",
                           "enum": [
-                            "cancelled"
-                          ]
+                            "cancelled",
+                            "cancel_requested"
+                          ],
+                          "description": "cancel_requested: the supplier only took a request the seller may still beat by delivering. The item stays pending and refunds in full via the trade webhook once the seller's side cancels."
                         }
                       },
                       "required": [
@@ -5920,6 +6056,10 @@
                         "cancelled": {
                           "type": "integer"
                         },
+                        "cancelRequested": {
+                          "type": "integer",
+                          "description": "Items whose cancel is only a request so far"
+                        },
                         "failed": {
                           "type": "integer"
                         },
@@ -5938,8 +6078,10 @@
                                 "type": "string",
                                 "enum": [
                                   "cancelled",
+                                  "cancel_requested",
                                   "failed"
-                                ]
+                                ],
+                                "description": "cancel_requested: the supplier only took a request the seller may still beat by delivering. The item stays pending and refunds in full via the trade webhook once the seller's side cancels."
                               },
                               "reason": {
                                 "type": "string",
@@ -5957,6 +6099,7 @@
                         "tradeId",
                         "requested",
                         "cancelled",
+                        "cancelRequested",
                         "failed",
                         "items"
                       ]
@@ -6547,9 +6690,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -6575,6 +6738,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -7235,9 +7402,29 @@
                               "BUYER_TRADE_RESTRICTED",
                               "OFFER_NOT_ACCEPTED",
                               "MARKET_UNAVAILABLE",
-                              "PURCHASE_FAILED"
+                              "PURCHASE_FAILED",
+                              "SELLER_FAILED"
                             ],
                             "description": "Failure code for a failed withdraw item (withdrawals only)"
+                          },
+                          "quickBuyable": {
+                            "type": "boolean",
+                            "enum": [
+                              false
+                            ],
+                            "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                          },
+                          "minPrice": {
+                            "type": "number",
+                            "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                          },
+                          "revertRefundPercent": {
+                            "type": "number",
+                            "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                          },
+                          "refundAmount": {
+                            "type": "number",
+                            "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                           },
                           "marketPrice": {
                             "type": "number",
@@ -7263,6 +7450,10 @@
                               },
                               "accepted": {
                                 "type": "boolean"
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                               }
                             },
                             "required": [
@@ -7869,7 +8060,8 @@
                                 "type": "string",
                                 "enum": [
                                   "client",
-                                  "self"
+                                  "self",
+                                  "arbitrage"
                                 ],
                                 "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                               },
@@ -7982,9 +8174,29 @@
                                         "BUYER_TRADE_RESTRICTED",
                                         "OFFER_NOT_ACCEPTED",
                                         "MARKET_UNAVAILABLE",
-                                        "PURCHASE_FAILED"
+                                        "PURCHASE_FAILED",
+                                        "SELLER_FAILED"
                                       ],
                                       "description": "Failure code for a failed withdraw item (withdrawals only)"
+                                    },
+                                    "quickBuyable": {
+                                      "type": "boolean",
+                                      "enum": [
+                                        false
+                                      ],
+                                      "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                                    },
+                                    "minPrice": {
+                                      "type": "number",
+                                      "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                                    },
+                                    "revertRefundPercent": {
+                                      "type": "number",
+                                      "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                                    },
+                                    "refundAmount": {
+                                      "type": "number",
+                                      "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                                     },
                                     "marketPrice": {
                                       "type": "number",
@@ -8010,6 +8222,10 @@
                                         },
                                         "accepted": {
                                           "type": "boolean"
+                                        },
+                                        "revertRefundPercent": {
+                                          "type": "number",
+                                          "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                         }
                                       },
                                       "required": [
@@ -8229,6 +8445,7 @@
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
                                   "PURCHASE_FAILED",
+                                  "SELLER_FAILED",
                                   "USER_TRADE_RESTRICTED",
                                   "USER_INVENTORY_PRIVATE",
                                   "USER_ESCROW",
@@ -8646,7 +8863,8 @@
                               "type": "string",
                               "enum": [
                                 "client",
-                                "self"
+                                "self",
+                                "arbitrage"
                               ],
                               "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                             },
@@ -8759,9 +8977,29 @@
                                       "BUYER_TRADE_RESTRICTED",
                                       "OFFER_NOT_ACCEPTED",
                                       "MARKET_UNAVAILABLE",
-                                      "PURCHASE_FAILED"
+                                      "PURCHASE_FAILED",
+                                      "SELLER_FAILED"
                                     ],
                                     "description": "Failure code for a failed withdraw item (withdrawals only)"
+                                  },
+                                  "quickBuyable": {
+                                    "type": "boolean",
+                                    "enum": [
+                                      false
+                                    ],
+                                    "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                                  },
+                                  "minPrice": {
+                                    "type": "number",
+                                    "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                                  },
+                                  "refundAmount": {
+                                    "type": "number",
+                                    "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                                   },
                                   "marketPrice": {
                                     "type": "number",
@@ -8787,6 +9025,10 @@
                                       },
                                       "accepted": {
                                         "type": "boolean"
+                                      },
+                                      "revertRefundPercent": {
+                                        "type": "number",
+                                        "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                       }
                                     },
                                     "required": [
@@ -9006,6 +9248,7 @@
                                 "OFFER_NOT_ACCEPTED",
                                 "MARKET_UNAVAILABLE",
                                 "PURCHASE_FAILED",
+                                "SELLER_FAILED",
                                 "USER_TRADE_RESTRICTED",
                                 "USER_INVENTORY_PRIVATE",
                                 "USER_ESCROW",
@@ -9070,7 +9313,8 @@
                                 "type": "string",
                                 "enum": [
                                   "client",
-                                  "self"
+                                  "self",
+                                  "arbitrage"
                                 ],
                                 "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                               },
@@ -9183,9 +9427,29 @@
                                         "BUYER_TRADE_RESTRICTED",
                                         "OFFER_NOT_ACCEPTED",
                                         "MARKET_UNAVAILABLE",
-                                        "PURCHASE_FAILED"
+                                        "PURCHASE_FAILED",
+                                        "SELLER_FAILED"
                                       ],
                                       "description": "Failure code for a failed withdraw item (withdrawals only)"
+                                    },
+                                    "quickBuyable": {
+                                      "type": "boolean",
+                                      "enum": [
+                                        false
+                                      ],
+                                      "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                                    },
+                                    "minPrice": {
+                                      "type": "number",
+                                      "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                                    },
+                                    "revertRefundPercent": {
+                                      "type": "number",
+                                      "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                                    },
+                                    "refundAmount": {
+                                      "type": "number",
+                                      "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                                     },
                                     "marketPrice": {
                                       "type": "number",
@@ -9211,6 +9475,10 @@
                                         },
                                         "accepted": {
                                           "type": "boolean"
+                                        },
+                                        "revertRefundPercent": {
+                                          "type": "number",
+                                          "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                         }
                                       },
                                       "required": [
@@ -9430,6 +9698,7 @@
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
                                   "PURCHASE_FAILED",
+                                  "SELLER_FAILED",
                                   "USER_TRADE_RESTRICTED",
                                   "USER_INVENTORY_PRIVATE",
                                   "USER_ESCROW",
@@ -9991,9 +10260,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -10019,6 +10308,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -10644,7 +10937,8 @@
                                 "type": "string",
                                 "enum": [
                                   "client",
-                                  "self"
+                                  "self",
+                                  "arbitrage"
                                 ],
                                 "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                               },
@@ -10757,9 +11051,29 @@
                                         "BUYER_TRADE_RESTRICTED",
                                         "OFFER_NOT_ACCEPTED",
                                         "MARKET_UNAVAILABLE",
-                                        "PURCHASE_FAILED"
+                                        "PURCHASE_FAILED",
+                                        "SELLER_FAILED"
                                       ],
                                       "description": "Failure code for a failed withdraw item (withdrawals only)"
+                                    },
+                                    "quickBuyable": {
+                                      "type": "boolean",
+                                      "enum": [
+                                        false
+                                      ],
+                                      "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                                    },
+                                    "minPrice": {
+                                      "type": "number",
+                                      "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                                    },
+                                    "revertRefundPercent": {
+                                      "type": "number",
+                                      "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                                    },
+                                    "refundAmount": {
+                                      "type": "number",
+                                      "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                                     },
                                     "marketPrice": {
                                       "type": "number",
@@ -10785,6 +11099,10 @@
                                         },
                                         "accepted": {
                                           "type": "boolean"
+                                        },
+                                        "revertRefundPercent": {
+                                          "type": "number",
+                                          "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                         }
                                       },
                                       "required": [
@@ -11004,6 +11322,7 @@
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
                                   "PURCHASE_FAILED",
+                                  "SELLER_FAILED",
                                   "USER_TRADE_RESTRICTED",
                                   "USER_INVENTORY_PRIVATE",
                                   "USER_ESCROW",
@@ -12006,9 +12325,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -12034,6 +12373,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -12694,9 +13037,29 @@
                               "BUYER_TRADE_RESTRICTED",
                               "OFFER_NOT_ACCEPTED",
                               "MARKET_UNAVAILABLE",
-                              "PURCHASE_FAILED"
+                              "PURCHASE_FAILED",
+                              "SELLER_FAILED"
                             ],
                             "description": "Failure code for a failed withdraw item (withdrawals only)"
+                          },
+                          "quickBuyable": {
+                            "type": "boolean",
+                            "enum": [
+                              false
+                            ],
+                            "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                          },
+                          "minPrice": {
+                            "type": "number",
+                            "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                          },
+                          "revertRefundPercent": {
+                            "type": "number",
+                            "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                          },
+                          "refundAmount": {
+                            "type": "number",
+                            "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                           },
                           "marketPrice": {
                             "type": "number",
@@ -12722,6 +13085,10 @@
                               },
                               "accepted": {
                                 "type": "boolean"
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                               }
                             },
                             "required": [
@@ -17400,7 +17767,8 @@
                           "type": "string",
                           "enum": [
                             "client",
-                            "self"
+                            "self",
+                            "arbitrage"
                           ],
                           "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                         },
@@ -17513,9 +17881,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -17541,6 +17929,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -17760,6 +18152,7 @@
                             "OFFER_NOT_ACCEPTED",
                             "MARKET_UNAVAILABLE",
                             "PURCHASE_FAILED",
+                            "SELLER_FAILED",
                             "USER_TRADE_RESTRICTED",
                             "USER_INVENTORY_PRIVATE",
                             "USER_ESCROW",
@@ -17807,7 +18200,8 @@
                                 "type": "string",
                                 "enum": [
                                   "client",
-                                  "self"
+                                  "self",
+                                  "arbitrage"
                                 ],
                                 "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                               },
@@ -17920,9 +18314,29 @@
                                         "BUYER_TRADE_RESTRICTED",
                                         "OFFER_NOT_ACCEPTED",
                                         "MARKET_UNAVAILABLE",
-                                        "PURCHASE_FAILED"
+                                        "PURCHASE_FAILED",
+                                        "SELLER_FAILED"
                                       ],
                                       "description": "Failure code for a failed withdraw item (withdrawals only)"
+                                    },
+                                    "quickBuyable": {
+                                      "type": "boolean",
+                                      "enum": [
+                                        false
+                                      ],
+                                      "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                                    },
+                                    "minPrice": {
+                                      "type": "number",
+                                      "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                                    },
+                                    "revertRefundPercent": {
+                                      "type": "number",
+                                      "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                                    },
+                                    "refundAmount": {
+                                      "type": "number",
+                                      "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                                     },
                                     "marketPrice": {
                                       "type": "number",
@@ -17948,6 +18362,10 @@
                                         },
                                         "accepted": {
                                           "type": "boolean"
+                                        },
+                                        "revertRefundPercent": {
+                                          "type": "number",
+                                          "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                         }
                                       },
                                       "required": [
@@ -18167,6 +18585,7 @@
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
                                   "PURCHASE_FAILED",
+                                  "SELLER_FAILED",
                                   "USER_TRADE_RESTRICTED",
                                   "USER_INVENTORY_PRIVATE",
                                   "USER_ESCROW",
@@ -18719,7 +19138,8 @@
                           "type": "string",
                           "enum": [
                             "client",
-                            "self"
+                            "self",
+                            "arbitrage"
                           ],
                           "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                         },
@@ -18832,9 +19252,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -18860,6 +19300,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -19079,6 +19523,7 @@
                             "OFFER_NOT_ACCEPTED",
                             "MARKET_UNAVAILABLE",
                             "PURCHASE_FAILED",
+                            "SELLER_FAILED",
                             "USER_TRADE_RESTRICTED",
                             "USER_INVENTORY_PRIVATE",
                             "USER_ESCROW",
@@ -19483,6 +19928,12 @@
                     ],
                     "description": "Doppler phase to buy (e.g. 'Ruby'). Priced against the phase floor for the requested delivery mode."
                   },
+                  "minRevertRefundPercent": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "description": "CS2 only. Never fill below this share refunded on a buyer reversal. A listing that names no share counts as 0."
+                  },
                   "autoCancel": {
                     "type": "integer",
                     "minimum": 30,
@@ -19552,7 +20003,8 @@
                           "type": "string",
                           "enum": [
                             "client",
-                            "self"
+                            "self",
+                            "arbitrage"
                           ],
                           "description": "Trade origin: \"client\" (end-user flow) or \"self\" (merchant self-trade)"
                         },
@@ -19665,9 +20117,29 @@
                                   "BUYER_TRADE_RESTRICTED",
                                   "OFFER_NOT_ACCEPTED",
                                   "MARKET_UNAVAILABLE",
-                                  "PURCHASE_FAILED"
+                                  "PURCHASE_FAILED",
+                                  "SELLER_FAILED"
                                 ],
                                 "description": "Failure code for a failed withdraw item (withdrawals only)"
+                              },
+                              "quickBuyable": {
+                                "type": "boolean",
+                                "enum": [
+                                  false
+                                ],
+                                "description": "Market listings only. Present (false) on a row no quick withdrawal will take: it is priced far under every other source and has almost always sold already, so a quick-withdraw maxPrice copied from it is refused. The row can still be withdrawn by its id."
+                              },
+                              "minPrice": {
+                                "type": "number",
+                                "description": "Quick withdrawals only. Set on a failed item whose maxPrice was under the cheapest listing that would fill it (error NO_LISTING_AT_PRICE, LISTING_UNAVAILABLE or PRICE_CHANGED): the per-unit maxPrice, in USD and fee-inclusive like maxPrice itself, that would have cleared when it failed. Absent when your bid still cleared and the item was simply taken first."
+                              },
+                              "revertRefundPercent": {
+                                "type": "number",
+                                "description": "CS2 withdrawals only. Share refunded if the buyer reverses this item after delivery, 0-100: what the listing showed until it fills, then the actual share of what was bought. Absent when unknown."
+                              },
+                              "refundAmount": {
+                                "type": "number",
+                                "description": "Withdrawals only. Set on a refunded item: what went back to your balance, in USD. Equal to the offer price except on a buyer reversal, which returns the item's revertRefundPercent share."
                               },
                               "marketPrice": {
                                 "type": "number",
@@ -19693,6 +20165,10 @@
                                   },
                                   "accepted": {
                                     "type": "boolean"
+                                  },
+                                  "revertRefundPercent": {
+                                    "type": "number",
+                                    "description": "CS2 withdrawal listings only. Share of the price refunded if the buyer reverses the trade after delivery, 0-100. A seller reversal always refunds in full. Rust trades cannot be reversed, so Rust listings never carry it."
                                   }
                                 },
                                 "required": [
@@ -19912,6 +20388,7 @@
                             "OFFER_NOT_ACCEPTED",
                             "MARKET_UNAVAILABLE",
                             "PURCHASE_FAILED",
+                            "SELLER_FAILED",
                             "USER_TRADE_RESTRICTED",
                             "USER_INVENTORY_PRIVATE",
                             "USER_ESCROW",
@@ -20326,8 +20803,10 @@
                         "status": {
                           "type": "string",
                           "enum": [
-                            "cancelled"
-                          ]
+                            "cancelled",
+                            "cancel_requested"
+                          ],
+                          "description": "cancel_requested: the supplier only took a request the seller may still beat by delivering. The item stays pending and refunds in full via the trade webhook once the seller's side cancels."
                         }
                       },
                       "required": [
@@ -20761,6 +21240,10 @@
                         "cancelled": {
                           "type": "integer"
                         },
+                        "cancelRequested": {
+                          "type": "integer",
+                          "description": "Items whose cancel is only a request so far"
+                        },
                         "failed": {
                           "type": "integer"
                         },
@@ -20779,8 +21262,10 @@
                                 "type": "string",
                                 "enum": [
                                   "cancelled",
+                                  "cancel_requested",
                                   "failed"
-                                ]
+                                ],
+                                "description": "cancel_requested: the supplier only took a request the seller may still beat by delivering. The item stays pending and refunds in full via the trade webhook once the seller's side cancels."
                               },
                               "reason": {
                                 "type": "string",
@@ -20798,6 +21283,7 @@
                         "tradeId",
                         "requested",
                         "cancelled",
+                        "cancelRequested",
                         "failed",
                         "items"
                       ]
@@ -22679,6 +23165,10 @@
                                   "usd": {
                                     "type": "number"
                                   },
+                                  "netUsd": {
+                                    "type": "number",
+                                    "description": "What moved on the wallet: an on-chain deposit fee comes out of usd, a withdrawal fee is added on top"
+                                  },
                                   "crypto": {
                                     "type": "string"
                                   },
@@ -22697,6 +23187,7 @@
                                 },
                                 "required": [
                                   "usd",
+                                  "netUsd",
                                   "crypto",
                                   "token",
                                   "chain"
@@ -23214,6 +23705,10 @@
                             "usd": {
                               "type": "number"
                             },
+                            "netUsd": {
+                              "type": "number",
+                              "description": "What moved on the wallet: an on-chain deposit fee comes out of usd, a withdrawal fee is added on top"
+                            },
                             "crypto": {
                               "type": "string"
                             },
@@ -23235,6 +23730,7 @@
                           },
                           "required": [
                             "usd",
+                            "netUsd",
                             "crypto",
                             "token",
                             "chain",

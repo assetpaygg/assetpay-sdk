@@ -12,7 +12,7 @@ export type TradeStatus =
   | 'reverted';
 
 export type TradeType = 'deposit' | 'withdraw';
-export type TradeSource = 'client' | 'self';
+export type TradeSource = 'client' | 'self' | 'arbitrage';
 export type RevertedBy = 'supplier' | 'user';
 export type DeliveryMode = 'standard' | 'instant';
 export type DeliveryFilter = 'any' | DeliveryMode;
@@ -38,7 +38,8 @@ export type TradeFailureCode =
   | 'BUYER_TRADE_RESTRICTED'
   | 'OFFER_NOT_ACCEPTED'
   | 'MARKET_UNAVAILABLE'
-  | 'PURCHASE_FAILED';
+  | 'PURCHASE_FAILED'
+  | 'SELLER_FAILED';
 
 export type TradeErrorCode =
   | TradeFailureCode
@@ -91,10 +92,20 @@ export interface ItemOffer {
   delivery?: DeliveryMode;
   maxAmount?: number;
   accepted?: boolean;
+  /** CS2 withdrawal listings only: share of the price refunded if the buyer reverses after delivery, 0-100. */
+  revertRefundPercent?: number;
 }
 
 export interface Item {
   id: string;
+  /** CS2 withdrawals only: the buyer-reversal refund share, the fill's actual once it fills. */
+  revertRefundPercent?: number;
+  /** Withdrawals only, on a refunded item: what went back to your balance, in USD. */
+  refundAmount?: number;
+  /** Market listings only: false when no quick withdrawal will take this row. */
+  quickBuyable?: false;
+  /** Failed quick withdrawals only: the per-unit maxPrice that would have cleared. */
+  minPrice?: number;
   itemId?: string;
   externalId?: string;
   assetId?: string;
@@ -185,6 +196,7 @@ export interface TradeCancelResult {
   tradeId: string;
   requested: number;
   cancelled: number;
+  cancelRequested: number;
   failed: number;
   items: ItemCancelOutcome[];
 }
@@ -394,6 +406,7 @@ export interface Pagination {
 
 export interface LedgerAmount {
   usd: number;
+  netUsd: number;
   crypto: string;
   token: string | null;
   chain: string | null;
@@ -550,6 +563,8 @@ export interface QuickWithdrawInput {
   game?: GameId | undefined;
   externalId?: string | undefined;
   externalIds?: string[] | undefined;
+  /** CS2 only: never fill below this share refunded on a buyer reversal. */
+  minRevertRefundPercent?: number | undefined;
 }
 
 export interface QuickBuyInput extends QuickWithdrawInput {

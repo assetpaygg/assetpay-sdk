@@ -51,6 +51,8 @@ Use `baseUrl: 'https://api-staging.assetpay.gg'` (exported as `STAGING_BASE_URL`
 
 Every withdrawal, including your own `/secure/buy`, is sent to your callback URL for approval before anything is bought. Without a callback URL and an API secret configured in the dashboard, every withdrawal fails with `MERCHANT_NO_CALLBACK_URL` or `MERCHANT_NO_API_SECRET`. See [Webhooks](#webhooks) for the handler.
 
+A CS2 trade the buyer reverses after delivery refunds only part of the price. Listings show the share as `offer.revertRefundPercent`, `quickBuy` and `quickWithdraw` take a `minRevertRefundPercent` floor, and each item reports `revertRefundPercent` and, once refunded, `refundAmount`. Rust trades cannot be reversed and never carry these fields.
+
 ## Two scopes
 
 | Scope | Credential | Access |
