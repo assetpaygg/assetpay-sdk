@@ -1,6 +1,6 @@
 {
   "name": "@assetpay/assetpay-sdk",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Official TypeScript SDK for AssetPay: accept CS2 and Rust skins as payment, with typed deposits, withdrawals, client tokens and webhook verification",
   "author": {
     "name": "AssetPay",
