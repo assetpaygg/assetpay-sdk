@@ -22,7 +22,6 @@ const KEYS = {
 const hashes = new Map<string, Map<string, string>>();
 const streams = new Map<string, [string, string[]][]>();
 let seq = 0;
-let trimmed = '0-0';
 let resp3 = false;
 
 function hset(key: string, field: string, value: string) {
@@ -37,6 +36,10 @@ function event(stream: string, type: string, id: string, itemKey: string) {
   streams.set(stream, list);
 }
 
+function trim(stream: string, keep: number) {
+  streams.set(stream, (streams.get(stream) ?? []).slice(-keep));
+}
+
 const after = (id: string, than: string) => Number(id.split('-')[0]) > Number(than.split('-')[0]);
 
 class FakeRedis {
@@ -49,8 +52,18 @@ class FakeRedis {
         return [...(hashes.get(a[0] as string) ?? new Map())].flat();
       case 'XREVRANGE':
         return (streams.get(a[0] as string) ?? []).slice(-1);
-      case 'XINFO':
-        return ['length', 0, 'max-deleted-entry-id', trimmed];
+      case 'XINFO': {
+        // Real MAXLEN trimming leaves max-deleted-entry-id at 0-0; only first-entry moves.
+        const list = streams.get(a[1] as string) ?? [];
+        return [
+          'length',
+          list.length,
+          'max-deleted-entry-id',
+          '0-0',
+          'first-entry',
+          list[0] ?? null,
+        ];
+      }
       case 'XREAD': {
         const names = a.slice(a.indexOf('STREAMS') + 1);
         const half = names.length / 2;
@@ -82,7 +95,6 @@ function seed() {
   hashes.clear();
   streams.clear();
   seq = 0;
-  trimmed = '0-0';
   resp3 = false;
   hset(KEYS.meta, 'ready', '1');
   hset(KEYS.state, 't', '1795500000000');
@@ -224,11 +236,35 @@ describe('market.syncFeed', () => {
       },
       { Redis, batch: 1 },
     );
+    event(KEYS.internal.stream, 'price.update', OWN, AWP);
     await feed.ready;
     hset(KEYS.external.prices + AK, EXT, '14.00');
-    trimmed = '9-0';
-    event(KEYS.internal.stream, 'price.update', OWN, AWP);
+    for (let i = 0; i < 3; i++) event(KEYS.internal.stream, 'price.update', OWN, AWP);
+    trim(KEYS.internal.stream, 1);
     await until(() => loads === 2 && feed?.listings.get(EXT)?.price === '14.00');
+  });
+
+  it('keeps following while nothing it has not read was trimmed', async () => {
+    seed();
+    let loads = 0;
+    feed = sdk(mockServer().ok(ACCESS)).market.syncFeed(
+      {
+        onReady: () => {
+          loads++;
+        },
+      },
+      { Redis, batch: 1 },
+    );
+    event(KEYS.internal.stream, 'price.update', OWN, AWP);
+    await feed.ready;
+    hset(KEYS.internal.prices + AWP, OWN, '12.00');
+    event(KEYS.internal.stream, 'price.update', OWN, AWP);
+    await until(() => feed?.listings.get(OWN)?.price === '12.00');
+    trim(KEYS.internal.stream, 1);
+    hset(KEYS.internal.prices + AWP, OWN, '13.00');
+    event(KEYS.internal.stream, 'price.update', OWN, AWP);
+    await until(() => feed?.listings.get(OWN)?.price === '13.00');
+    expect(loads).toBe(1);
   });
 
   it('stops for good when the login is refused', async () => {

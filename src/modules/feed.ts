@@ -183,12 +183,18 @@ function compareIds(a: string, b: string): number {
   return 0;
 }
 
-// The newest id the stream trimmed away, or null when nothing was (or the stream does not exist yet).
-async function trimPoint(c: FeedRedisClient, stream: string): Promise<string | null> {
+// The oldest id still in the stream, or null when it is empty or does not exist yet. MAXLEN trimming
+// never moves max-deleted-entry-id (only XDEL does), so a trim shows only as a newer first entry.
+async function firstEntry(c: FeedRedisClient, stream: string): Promise<string | null> {
   try {
-    return (
-      new Map(pairs(await c.call('XINFO', 'STREAM', stream))).get('max-deleted-entry-id') ?? null
-    );
+    const info = await c.call('XINFO', 'STREAM', stream);
+    let first: unknown = null;
+    if (info instanceof Map) first = info.get('first-entry');
+    else if (Array.isArray(info)) {
+      for (let i = 0; i + 1 < info.length; i += 2)
+        if (String(info[i]) === 'first-entry') first = info[i + 1];
+    }
+    return Array.isArray(first) && first[0] != null ? String(first[0]) : null;
   } catch (err) {
     if (/no such key/i.test((err as Error)?.message ?? '')) return null;
     throw err;
@@ -280,7 +286,7 @@ export function syncFeed(
       const tail = streamEntries([
         [stream, await c.call('XREVRANGE', stream, '+', '-', 'COUNT', 1)],
       ]);
-      last.set(stream, tail[0]?.[1] ?? (await trimPoint(c, stream)) ?? '0-0');
+      last.set(stream, tail[0]?.[1] ?? '0-0');
     }
     const state = new Map(pairs(await c.call('HGETALL', keys.state)));
     frozen = state.get('frozen') === '1';
@@ -421,9 +427,9 @@ export function syncFeed(
       // Trimmed past where this read started: entries between were deleted unread. A gap always
       // comes back as a full batch, since a stream holds far more than one batch after it.
       if (entries.length >= batch) {
-        const trims = await Promise.all(streams.map((s) => trimPoint(c, s)));
+        const firsts = await Promise.all(streams.map((s) => firstEntry(c, s)));
         if (
-          trims.some((t, i) => t && compareIds(t, before.get(streams[i] as string) as string) > 0)
+          firsts.some((f, i) => f && compareIds(f, before.get(streams[i] as string) as string) > 0)
         )
           return;
       }
