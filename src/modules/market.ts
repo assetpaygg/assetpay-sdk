@@ -10,6 +10,14 @@ import type {
   MerchantMarketSearchQuery,
   RustPriceItem,
 } from '../types/api.js';
+import {
+  type FeedAccess,
+  feedAccess,
+  type SyncedFeed,
+  type SyncFeedHandlers,
+  type SyncFeedOptions,
+  syncFeed,
+} from './feed.js';
 
 export class MarketModule {
   constructor(private readonly http: HttpClient) {}
@@ -32,6 +40,19 @@ export class MarketModule {
       { method: 'GET', path: '/secure/market/item', query, retry: 'safe' },
       opts,
     );
+  }
+
+  /** GET /secure/feed: your read-only login to the feed Redis, priced for you. */
+  feed(opts?: RequestOptions): Promise<FeedAccess> {
+    return feedAccess(this.http, opts);
+  }
+
+  /**
+   * A live copy of the feed read from Redis: login, load, then the streams. Pass a Redis client
+   * class, e.g. `{ Redis }` from `ioredis`, and `source` to read only one book.
+   */
+  syncFeed(handlers: SyncFeedHandlers, opts: SyncFeedOptions): SyncedFeed {
+    return syncFeed(this.http, handlers, opts);
   }
 }
 

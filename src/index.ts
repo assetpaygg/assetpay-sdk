@@ -24,6 +24,17 @@ export { SDK_VERSION } from './internal/version.js';
 export { META_SYMBOL, meta, type ResponseMeta } from './meta.js';
 export type { ClientsModule } from './modules/clients.js';
 export type { ClientCryptoModule, CryptoModule } from './modules/crypto.js';
+export type {
+  FeedAccess,
+  FeedListing,
+  FeedRedisClient,
+  FeedRedisConstructor,
+  FeedSelection,
+  FeedSource,
+  SyncedFeed,
+  SyncFeedHandlers,
+  SyncFeedOptions,
+} from './modules/feed.js';
 export type { ClientInventoryModule, InventoryModule } from './modules/inventory.js';
 export type { ClientMarketModule, MarketModule } from './modules/market.js';
 export type { RawModule, RawRequest } from './modules/raw.js';

@@ -1,3 +1,4 @@
+import type { FeedAccess } from '../../src/modules/feed.js';
 import type * as T from '../../src/types/index.js';
 import type { paths } from './openapi.js';
 
@@ -62,6 +63,7 @@ declare function input<Spec, Sdk>(check: Verdict<Spec, Sdk, never>): void;
 response<Data<'/auth/authenticate-client', 'post'>, T.ClientAuthToken>(true);
 response<Data<'/secure/check-tradeurl', 'post'>, T.TradeUrlCheck>(true);
 response<Data<'/secure/prices'>, T.PriceItem[]>(true);
+response<Data<'/secure/feed'>, FeedAccess>(true);
 response<Data<'/secure/inventory'>, T.Inventory>(true);
 response<Data<'/client/inventory'>, T.Inventory>(true);
 response<Data<'/secure/sell', 'post'>, T.DepositTrade>(true);

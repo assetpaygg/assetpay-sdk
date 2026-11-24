@@ -46,6 +46,7 @@ const invocations: Invocation[] = [
   (ap) => ap.market.prices(),
   (ap) => ap.market.search(),
   (ap) => ap.market.listings({ marketHashName: 'AK-47 | Redline (Field-Tested)' }),
+  (ap) => ap.market.feed(),
   (ap) => ap.inventory.get({ tradeUrl: TRADE_URL }),
   (ap) => ap.trades.list(),
   (ap) => ap.trades.get('t-1'),
@@ -95,7 +96,7 @@ function operationFor(call: Recorded): Operation | undefined {
 // that calls a route the API does not publish, is drift that should fail CI, not a merchant.
 describe('public spec coverage', () => {
   it('reaches every public operation except verification', async () => {
-    expect(operations).toHaveLength(34);
+    expect(operations).toHaveLength(35);
     const calls = await record();
     const missing = operations.filter(
       (op) => !calls.some((c) => c.method === op.method && op.pattern.test(c.path)),

@@ -4057,6 +4057,212 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/secure/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get merchant feed login
+         * @description Returns a read-only login to the merchant feed Redis: the AssetPay pool and third-party marketplace listings, each priced for your account, as hashes plus a change stream per book. Prices are what /secure/buy charges for the listing id. The login reads only your own price lane; a pricing change moves you to another lane, so a NOPERM means fetch the login again. Requires API key with CORE_ACCESS scope.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Your feed login and key names */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Unique request identifier */
+                            requestId: string;
+                            /** @enum {boolean} */
+                            success: true;
+                            data: {
+                                /** @description `rediss://user:password@host:port`: connect with it as is, with no INFO-based ready check. */
+                                url: string;
+                                host: string;
+                                port: number;
+                                /** @enum {boolean} */
+                                tls: true;
+                                username: string;
+                                password: string;
+                                /** @description Most external listings held per item and phase. */
+                                depth: number;
+                                /** @description External instant listings held per item and phase when it has that many. */
+                                instantMin: number;
+                                keys: {
+                                    /** @description Hash: `t`, `gen`, `frozen`, `depth`, `instantMin`. */
+                                    state: string;
+                                    /** @description Hash: `ready` is `1` once your prices are complete. */
+                                    meta: string;
+                                    /** @description The AssetPay pool's own stock. */
+                                    internal: {
+                                        /** @description Hash: item key → item JSON. */
+                                        items: string;
+                                        /** @description Prefix: + item key is a hash of listing id → listing JSON. */
+                                        rows: string;
+                                        /** @description Prefix: + item key is a hash of listing id → your price ("12.34"). */
+                                        prices: string;
+                                        /** @description Stream: `type` (item.add, price.update, item.remove) and `data` `{ id, itemKey }`. */
+                                        stream: string;
+                                    };
+                                    /** @description Third-party marketplace listings. */
+                                    external: {
+                                        /** @description Hash: item key → item JSON. */
+                                        items: string;
+                                        /** @description Prefix: + item key is a hash of listing id → listing JSON. */
+                                        rows: string;
+                                        /** @description Prefix: + item key is a hash of listing id → your price ("12.34"). */
+                                        prices: string;
+                                        /** @description Stream: `type` (item.add, price.update, item.remove) and `data` `{ id, itemKey }`. */
+                                        stream: string;
+                                    };
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - missing or invalid credentials */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Unique request identifier */
+                            requestId: string;
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                /** @description Numeric error code (see error-codes.ts) */
+                                code: number;
+                                /** @description Machine-readable error key */
+                                key: string;
+                                /** @description Human-readable, for display and logs only - do not parse it. Wording changes without notice; branch on `key` or `code` instead, and read `fields` for per-field detail. On VALIDATION_FAILED each offending field is named: "tradeurl: Trade URL must be ...". */
+                                message: string | string[];
+                                /** @description Present only on VALIDATION_FAILED. Maps the dotted path of each rejected field to why it was rejected, one entry per field. Capped at 20 entries; `message` names the first 5. */
+                                fields?: {
+                                    [key: string]: string;
+                                };
+                                /** @description Structured context for errors that carry it, e.g. ITEM_OVERSTOCKED names the refused items in `details.items`. Absent otherwise. */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Forbidden - insufficient permissions */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Unique request identifier */
+                            requestId: string;
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                /** @description Numeric error code (see error-codes.ts) */
+                                code: number;
+                                /** @description Machine-readable error key */
+                                key: string;
+                                /** @description Human-readable, for display and logs only - do not parse it. Wording changes without notice; branch on `key` or `code` instead, and read `fields` for per-field detail. On VALIDATION_FAILED each offending field is named: "tradeurl: Trade URL must be ...". */
+                                message: string | string[];
+                                /** @description Present only on VALIDATION_FAILED. Maps the dotted path of each rejected field to why it was rejected, one entry per field. Capped at 20 entries; `message` names the first 5. */
+                                fields?: {
+                                    [key: string]: string;
+                                };
+                                /** @description Structured context for errors that carry it, e.g. ITEM_OVERSTOCKED names the refused items in `details.items`. Absent otherwise. */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Too Many Requests - rate limit exceeded */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Unique request identifier */
+                            requestId: string;
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                /** @description Numeric error code (see error-codes.ts) */
+                                code: number;
+                                /** @description Machine-readable error key */
+                                key: string;
+                                /** @description Human-readable, for display and logs only - do not parse it. Wording changes without notice; branch on `key` or `code` instead, and read `fields` for per-field detail. On VALIDATION_FAILED each offending field is named: "tradeurl: Trade URL must be ...". */
+                                message: string | string[];
+                                /** @description Present only on VALIDATION_FAILED. Maps the dotted path of each rejected field to why it was rejected, one entry per field. Capped at 20 entries; `message` names the first 5. */
+                                fields?: {
+                                    [key: string]: string;
+                                };
+                                /** @description Structured context for errors that carry it, e.g. ITEM_OVERSTOCKED names the refused items in `details.items`. Absent otherwise. */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Service Unavailable - maintenance mode */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Unique request identifier */
+                            requestId: string;
+                            /** @enum {boolean} */
+                            success: false;
+                            error: {
+                                /** @description Numeric error code (see error-codes.ts) */
+                                code: number;
+                                /** @description Machine-readable error key */
+                                key: string;
+                                /** @description Human-readable, for display and logs only - do not parse it. Wording changes without notice; branch on `key` or `code` instead, and read `fields` for per-field detail. On VALIDATION_FAILED each offending field is named: "tradeurl: Trade URL must be ...". */
+                                message: string | string[];
+                                /** @description Present only on VALIDATION_FAILED. Maps the dotted path of each rejected field to why it was rejected, one entry per field. Capped at 20 entries; `message` names the first 5. */
+                                fields?: {
+                                    [key: string]: string;
+                                };
+                                /** @description Structured context for errors that carry it, e.g. ITEM_OVERSTOCKED names the refused items in `details.items`. Absent otherwise. */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/client/inventory": {
         parameters: {
             query?: never;

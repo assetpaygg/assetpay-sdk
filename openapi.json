@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "AssetPay Public API",
-    "version": "0.8.4",
+    "version": "0.8.6",
     "description": "Public trading API - skin deposits, withdrawals, pricing, client endpoints, and identity verification."
   },
   "servers": [
@@ -9972,6 +9972,454 @@
           },
           "429": {
             "description": "Too Many Requests - rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requestId": {
+                      "type": "string",
+                      "description": "Unique request identifier"
+                    },
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "description": "Numeric error code (see error-codes.ts)"
+                        },
+                        "key": {
+                          "type": "string",
+                          "description": "Machine-readable error key"
+                        },
+                        "message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          ],
+                          "description": "Human-readable, for display and logs only - do not parse it. Wording changes without notice; branch on `key` or `code` instead, and read `fields` for per-field detail. On VALIDATION_FAILED each offending field is named: \"tradeurl: Trade URL must be ...\"."
+                        },
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "description": "Present only on VALIDATION_FAILED. Maps the dotted path of each rejected field to why it was rejected, one entry per field. Capped at 20 entries; `message` names the first 5."
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {},
+                          "description": "Structured context for errors that carry it, e.g. ITEM_OVERSTOCKED names the refused items in `details.items`. Absent otherwise."
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "key",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "requestId",
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/secure/feed": {
+      "get": {
+        "summary": "Get merchant feed login",
+        "description": "Returns a read-only login to the merchant feed Redis: the AssetPay pool and third-party marketplace listings, each priced for your account, as hashes plus a change stream per book. Prices are what /secure/buy charges for the listing id. The login reads only your own price lane; a pricing change moves you to another lane, so a NOPERM means fetch the login again. Requires API key with CORE_ACCESS scope.",
+        "tags": [
+          "Trading"
+        ],
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Your feed login and key names",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requestId": {
+                      "type": "string",
+                      "description": "Unique request identifier"
+                    },
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "url": {
+                          "type": "string",
+                          "description": "`rediss://user:password@host:port`: connect with it as is, with no INFO-based ready check."
+                        },
+                        "host": {
+                          "type": "string"
+                        },
+                        "port": {
+                          "type": "integer"
+                        },
+                        "tls": {
+                          "type": "boolean",
+                          "enum": [
+                            true
+                          ]
+                        },
+                        "username": {
+                          "type": "string"
+                        },
+                        "password": {
+                          "type": "string"
+                        },
+                        "depth": {
+                          "type": "integer",
+                          "description": "Most external listings held per item and phase."
+                        },
+                        "instantMin": {
+                          "type": "integer",
+                          "description": "External instant listings held per item and phase when it has that many."
+                        },
+                        "keys": {
+                          "type": "object",
+                          "properties": {
+                            "state": {
+                              "type": "string",
+                              "description": "Hash: `t`, `gen`, `frozen`, `depth`, `instantMin`."
+                            },
+                            "meta": {
+                              "type": "string",
+                              "description": "Hash: `ready` is `1` once your prices are complete."
+                            },
+                            "internal": {
+                              "type": "object",
+                              "properties": {
+                                "items": {
+                                  "type": "string",
+                                  "description": "Hash: item key → item JSON."
+                                },
+                                "rows": {
+                                  "type": "string",
+                                  "description": "Prefix: + item key is a hash of listing id → listing JSON."
+                                },
+                                "prices": {
+                                  "type": "string",
+                                  "description": "Prefix: + item key is a hash of listing id → your price (\"12.34\")."
+                                },
+                                "stream": {
+                                  "type": "string",
+                                  "description": "Stream: `type` (item.add, price.update, item.remove) and `data` `{ id, itemKey }`."
+                                }
+                              },
+                              "required": [
+                                "items",
+                                "rows",
+                                "prices",
+                                "stream"
+                              ],
+                              "description": "The AssetPay pool's own stock."
+                            },
+                            "external": {
+                              "type": "object",
+                              "properties": {
+                                "items": {
+                                  "type": "string",
+                                  "description": "Hash: item key → item JSON."
+                                },
+                                "rows": {
+                                  "type": "string",
+                                  "description": "Prefix: + item key is a hash of listing id → listing JSON."
+                                },
+                                "prices": {
+                                  "type": "string",
+                                  "description": "Prefix: + item key is a hash of listing id → your price (\"12.34\")."
+                                },
+                                "stream": {
+                                  "type": "string",
+                                  "description": "Stream: `type` (item.add, price.update, item.remove) and `data` `{ id, itemKey }`."
+                                }
+                              },
+                              "required": [
+                                "items",
+                                "rows",
+                                "prices",
+                                "stream"
+                              ],
+                              "description": "Third-party marketplace listings."
+                            }
+                          },
+                          "required": [
+                            "state",
+                            "meta",
+                            "internal",
+                            "external"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "url",
+                        "host",
+                        "port",
+                        "tls",
+                        "username",
+                        "password",
+                        "depth",
+                        "instantMin",
+                        "keys"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "requestId",
+                    "success",
+                    "data"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - missing or invalid credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requestId": {
+                      "type": "string",
+                      "description": "Unique request identifier"
+                    },
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "description": "Numeric error code (see error-codes.ts)"
+                        },
+                        "key": {
+                          "type": "string",
+                          "description": "Machine-readable error key"
+                        },
+                        "message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          ],
+                          "description": "Human-readable, for display and logs only - do not parse it. Wording changes without notice; branch on `key` or `code` instead, and read `fields` for per-field detail. On VALIDATION_FAILED each offending field is named: \"tradeurl: Trade URL must be ...\"."
+                        },
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "description": "Present only on VALIDATION_FAILED. Maps the dotted path of each rejected field to why it was rejected, one entry per field. Capped at 20 entries; `message` names the first 5."
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {},
+                          "description": "Structured context for errors that carry it, e.g. ITEM_OVERSTOCKED names the refused items in `details.items`. Absent otherwise."
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "key",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "requestId",
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - insufficient permissions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requestId": {
+                      "type": "string",
+                      "description": "Unique request identifier"
+                    },
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "description": "Numeric error code (see error-codes.ts)"
+                        },
+                        "key": {
+                          "type": "string",
+                          "description": "Machine-readable error key"
+                        },
+                        "message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          ],
+                          "description": "Human-readable, for display and logs only - do not parse it. Wording changes without notice; branch on `key` or `code` instead, and read `fields` for per-field detail. On VALIDATION_FAILED each offending field is named: \"tradeurl: Trade URL must be ...\"."
+                        },
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "description": "Present only on VALIDATION_FAILED. Maps the dotted path of each rejected field to why it was rejected, one entry per field. Capped at 20 entries; `message` names the first 5."
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {},
+                          "description": "Structured context for errors that carry it, e.g. ITEM_OVERSTOCKED names the refused items in `details.items`. Absent otherwise."
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "key",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "requestId",
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests - rate limit exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "requestId": {
+                      "type": "string",
+                      "description": "Unique request identifier"
+                    },
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "integer",
+                          "description": "Numeric error code (see error-codes.ts)"
+                        },
+                        "key": {
+                          "type": "string",
+                          "description": "Machine-readable error key"
+                        },
+                        "message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            }
+                          ],
+                          "description": "Human-readable, for display and logs only - do not parse it. Wording changes without notice; branch on `key` or `code` instead, and read `fields` for per-field detail. On VALIDATION_FAILED each offending field is named: \"tradeurl: Trade URL must be ...\"."
+                        },
+                        "fields": {
+                          "type": "object",
+                          "additionalProperties": {
+                            "type": "string"
+                          },
+                          "description": "Present only on VALIDATION_FAILED. Maps the dotted path of each rejected field to why it was rejected, one entry per field. Capped at 20 entries; `message` names the first 5."
+                        },
+                        "details": {
+                          "type": "object",
+                          "additionalProperties": {},
+                          "description": "Structured context for errors that carry it, e.g. ITEM_OVERSTOCKED names the refused items in `details.items`. Absent otherwise."
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "key",
+                        "message"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "requestId",
+                    "success",
+                    "error"
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable - maintenance mode",
             "content": {
               "application/json": {
                 "schema": {
