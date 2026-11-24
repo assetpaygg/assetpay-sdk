@@ -23,6 +23,7 @@ const hashes = new Map<string, Map<string, string>>();
 const streams = new Map<string, [string, string[]][]>();
 let seq = 0;
 let trimmed = '0-0';
+let resp3 = false;
 
 function hset(key: string, field: string, value: string) {
   const h = hashes.get(key) ?? new Map<string, string>();
@@ -65,7 +66,7 @@ class FakeRedis {
           await new Promise((r) => setTimeout(r, 5));
           return null;
         }
-        return out;
+        return resp3 ? out.flat(1) : out;
       }
       default:
         throw new Error(`unexpected ${command}`);
@@ -82,6 +83,7 @@ function seed() {
   streams.clear();
   seq = 0;
   trimmed = '0-0';
+  resp3 = false;
   hset(KEYS.meta, 'ready', '1');
   hset(KEYS.state, 't', '1795500000000');
   hset(KEYS.state, 'gen', '1');
@@ -173,6 +175,17 @@ describe('market.syncFeed', () => {
     event(KEYS.internal.stream, 'item.remove', OWN, AWP);
     await until(() => feed?.listings.get(EXT)?.price === '12.00' && !feed.listings.has(OWN));
     expect(removed).toEqual([`internal:${OWN}`]);
+  });
+
+  it('follows both streams when Redis answers in RESP3', async () => {
+    seed();
+    resp3 = true;
+    feed = sdk(mockServer().ok(ACCESS)).market.syncFeed({}, { Redis });
+    await feed.ready;
+    hset(KEYS.external.prices + AK, EXT, '12.00');
+    event(KEYS.external.stream, 'price.update', EXT, AK);
+    event(KEYS.internal.stream, 'item.remove', OWN, AWP);
+    await until(() => feed?.listings.get(EXT)?.price === '12.00' && !feed.listings.has(OWN));
   });
 
   it('ignores a remove that names the other book', async () => {

@@ -150,11 +150,21 @@ function pairs(reply: unknown): [string, string][] {
 
 type StreamEntry = [stream: string, id: string, fields: [string, string][]];
 
-function streamEntries(reply: unknown): StreamEntry[] {
+// RESP2 nests each stream as [name, entries]; a RESP3 map (ioredis 6) comes back flat: name, entries, ...
+function streamGroups(reply: unknown): [string, unknown][] {
   if (reply == null) return [];
-  const groups: [string, unknown][] = Array.isArray(reply)
-    ? (reply as unknown[]).map((g) => [String((g as unknown[])[0]), (g as unknown[])[1]])
-    : Object.entries(reply as Record<string, unknown>);
+  if (reply instanceof Map) return [...reply].map(([k, v]) => [String(k), v]);
+  if (!Array.isArray(reply)) return Object.entries(reply as Record<string, unknown>);
+  if (reply.length > 0 && !Array.isArray(reply[0])) {
+    const out: [string, unknown][] = [];
+    for (let i = 0; i + 1 < reply.length; i += 2) out.push([String(reply[i]), reply[i + 1]]);
+    return out;
+  }
+  return reply.map((g) => [String((g as unknown[])[0]), (g as unknown[])[1]]);
+}
+
+function streamEntries(reply: unknown): StreamEntry[] {
+  const groups = streamGroups(reply);
   const out: StreamEntry[] = [];
   for (const [stream, entries] of groups) {
     for (const e of (entries ?? []) as unknown[]) {
